@@ -1,0 +1,22 @@
+.DS_Store
+/bin/
+/out/
+*.class
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Mac Finder
+.DS_Store
+
+# Local environment/config files that may contain secrets
+.env
+.env.*
+*.properties
+*.secret
+*.keystore

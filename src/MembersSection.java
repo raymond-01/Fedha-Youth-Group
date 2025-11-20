@@ -183,7 +183,6 @@ public class MembersSection {
 
         JLabel title = new JLabel("Table View - View and Manage Members", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 18));
-        panel.add(title, BorderLayout.NORTH);
 
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JLabel searchLabel = new JLabel("Search by Name:");
@@ -198,10 +197,14 @@ public class MembersSection {
         searchPanel.add(searchButton);
         searchPanel.add(totalSharesLabel);
         searchPanel.add(totalRegistrationFeesLabel);
-        panel.add(searchPanel, BorderLayout.NORTH);
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.add(title, BorderLayout.NORTH);
+        headerPanel.add(searchPanel, BorderLayout.SOUTH);
+        panel.add(headerPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(
-                new String[]{"Member ID", "Name", "Age", "Shares", "Registration Fee", "Outstanding Loan", "Exit Notice", "Max Loan Amount"}, 0
+                new String[]{"Member ID", "Name", "Age", "Shares", "Registration Fee", "Outstanding Loan", "Exit Notice", "Loan Type", "Max Loan Amount"}, 0
         );
         JTable membersTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(membersTable);
@@ -240,7 +243,7 @@ public class MembersSection {
 
     private ArrayList<Object[]> fetchAllMembersFromDatabase() {
         ArrayList<Object[]> members = new ArrayList<>();
-        String query = "SELECT MemberID, FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven FROM Members";
+        String query = "SELECT MemberID, FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven FROM members";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -255,7 +258,7 @@ public class MembersSection {
                         rs.getDouble("RegistrationFee"),
                         rs.getDouble("OutstandingLoan"),
                         rs.getBoolean("ExitNoticeGiven"),
-                        // loanData[0], // Loan Type
+                        loanData[0], // Loan Type
                         loanData[1]  // Max Loan Amount
                 });
             }
@@ -288,7 +291,7 @@ public class MembersSection {
     }
 
     private void addMemberToDatabase(String name, int age, double shares) throws SQLException {
-        String query = "INSERT INTO Members (FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven) VALUES (?, ?, ?, 1000, 0, false)";
+        String query = "INSERT INTO members (FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven) VALUES (?, ?, ?, 1000, 0, false)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, name);
@@ -300,7 +303,7 @@ public class MembersSection {
 
     private void searchMembersByName(String name) {
         tableModel.setRowCount(0);
-        String query = "SELECT MemberID, FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven FROM Members WHERE FullName LIKE ?";
+        String query = "SELECT MemberID, FullName, Age, Shares, RegistrationFee, OutstandingLoan, ExitNoticeGiven FROM members WHERE FullName LIKE ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, "%" + name + "%");
@@ -327,7 +330,7 @@ public class MembersSection {
     }
 
     private void updateSummaryLabels() {
-        String query = "SELECT SUM(Shares) AS TotalShares, SUM(RegistrationFee) AS TotalRegistrationFees FROM Members";
+        String query = "SELECT SUM(Shares) AS TotalShares, SUM(RegistrationFee) AS TotalRegistrationFees FROM members";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {

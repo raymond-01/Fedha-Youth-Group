@@ -13,8 +13,12 @@ public class DatabaseConnection {
     // Static block to initialize the connection
     static {
         try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Database connected successfully!");
+            if (PASSWORD == null) {
+                System.err.println("FEDHA_DB_PASSWORD is not set. Unable to establish initial database connection.");
+            } else {
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                System.out.println("Database connected successfully!");
+            }
         } catch (SQLException e) {
             System.err.println("Database connection failed: " + e.getMessage());
         }
@@ -23,6 +27,10 @@ public class DatabaseConnection {
     // Get the singleton connection instance
     public static Connection getConnection() {
         try {
+            if (PASSWORD == null) {
+                System.err.println("FEDHA_DB_PASSWORD is not set. Unable to establish database connection.");
+                return null;
+            }
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
             }

@@ -141,6 +141,12 @@ public class FixedDepositManagement {
 
             if (rs.next()) {
                 double totalSavings = rs.getDouble("TotalSavings");
+
+                if (totalSavings <= 0) {
+                    JOptionPane.showMessageDialog(frame, "No savings available for fixed deposit.");
+                    return;
+                }
+
                 double monthlyInterest = totalSavings * 0.006;
 
                 long monthsSinceLastUpdate = ChronoUnit.MONTHS.between(lastUpdated, LocalDate.now());

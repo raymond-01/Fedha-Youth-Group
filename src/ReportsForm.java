@@ -22,7 +22,6 @@ public class ReportsForm {
             JLabel titleLabel = new JLabel("Reports", SwingConstants.CENTER);
             titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
             titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-            frame.add(titleLabel, BorderLayout.NORTH);
 
             // Report Selection Section
             JPanel selectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -36,7 +35,11 @@ public class ReportsForm {
             selectionPanel.add(reportLabel);
             selectionPanel.add(reportComboBox);
             selectionPanel.add(generateButton);
-            frame.add(selectionPanel, BorderLayout.NORTH);
+
+            JPanel headerPanel = new JPanel(new BorderLayout());
+            headerPanel.add(titleLabel, BorderLayout.NORTH);
+            headerPanel.add(selectionPanel, BorderLayout.SOUTH);
+            frame.add(headerPanel, BorderLayout.NORTH);
 
             // Table Section
             tableModel = new DefaultTableModel();
@@ -151,8 +154,9 @@ public class ReportsForm {
 
     // Generate Revenue Report
     private void generateRevenueReport() {
-        String query = "SELECT SUM(LoanAmount * InterestRate / 100) AS LoanRevenue, " +
-                "SUM(MonthlyInterest) AS FixedDepositRevenue FROM loans, fixed_deposits";
+        String query = "SELECT " +
+                "(SELECT SUM(LoanAmount * InterestRate / 100) FROM loans) AS LoanRevenue, " +
+                "(SELECT SUM(MonthlyInterest) FROM fixed_deposits) AS FixedDepositRevenue";
         populateTableFromQuery(query, new String[]{"Loan Revenue", "Fixed Deposit Revenue"});
     }
 

@@ -283,14 +283,29 @@ public class LoanManagement {
         gbc.gridy++;
         panel.add(repayButton, gbc);
 
+        // Loan details label
+        gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy++;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
         panel.add(loanDetailsLabel, gbc);
-        gbc.gridx = 2;
+
+        // Loan details text area spanning two columns
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
         panel.add(new JScrollPane(loanDetailsArea), gbc);
 
-
+        // Back button centered below
         gbc.gridy++;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
         panel.add(backButton, gbc);
 
         return panel;
@@ -427,17 +442,26 @@ public class LoanManagement {
     }
 
     private boolean applyForLoan(int memberId, double loanAmount, String loanType, String[] guarantorIds) {
-        String query = "INSERT INTO loans (MemberID, LoanAmount, LoanType, LoanStatus, GuarantorIDs, RepaymentPeriod, OutstandingBalance) " +
-                "VALUES (?, ?, ?, 'Active', ?, ?, ?)";
+        double rateFactor = loanInterestRates.getOrDefault(loanType, 0.0);
+        double interestRatePercent = rateFactor * 100; // store as percentage for reporting
+        int repaymentPeriod = loanRepaymentPeriods.getOrDefault(loanType, 12);
+        double totalRepayable = loanAmount * (1 + rateFactor);
+        double monthlyRepayment = totalRepayable / repaymentPeriod;
+        String guarantors = String.join(",", guarantorIds);
+
+        String query = "INSERT INTO loans (MemberID, LoanAmount, LoanType, InterestRate, RepaymentPeriod, MonthlyRepayment, LoanStatus, GuarantorIDs, OutstandingBalance) " +
+                "VALUES (?, ?, ?, ?, ?, ?, 'Active', ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
             pstmt.setInt(1, memberId);
             pstmt.setDouble(2, loanAmount);
             pstmt.setString(3, loanType);
-            pstmt.setString(4, String.join(",", guarantorIds));
-            pstmt.setInt(5, loanRepaymentPeriods.getOrDefault(loanType, 12));
-            pstmt.setDouble(6, loanAmount);
+            pstmt.setDouble(4, interestRatePercent);
+            pstmt.setInt(5, repaymentPeriod);
+            pstmt.setDouble(6, monthlyRepayment);
+            pstmt.setString(7, guarantors);
+            pstmt.setDouble(8, loanAmount); // OutstandingBalance starts as full amount
 
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
